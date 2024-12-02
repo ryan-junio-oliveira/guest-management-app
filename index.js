@@ -16,7 +16,7 @@ sequelize.sync().then(() => {
   console.error("Erro ao conectar ao SQLite:", err);
 });
 
-app.use(express.static('public'));  // Serve arquivos da pasta "public"
+// app.use(express.static('public'));  // Serve arquivos da pasta "public"
 
 // Rotas
 app.use('/', guestRoutes);
