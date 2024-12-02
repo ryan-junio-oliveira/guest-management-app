@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1.0">
+        <title>Lista de Convidados</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Adicionar Font Awesome -->
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
+            integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ=="
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <style>
+        #editModal{
+            display: none;
+        }
+    </style>
+    <body
+        class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+        <div class="container mx-auto px-4 py-8">
+            <h1
+                class="text-4xl font-bold mb-6 text-center text-gray-800">Lista
+                de Convidados</h1>
+
+            <!-- Formulário -->
+            <form action="/add" method="POST"
+                class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-8">
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2">Categoria
+                        (Noivo ou Noiva):</label>
+                    <select name="category" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Noivo">Noivo</option>
+                        <option value="Noiva">Noiva</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2">Tipo
+                        de Convidado:</label>
+                    <select name="type" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Família">Família</option>
+                        <option value="Serviço">Serviço</option>
+                        <option value="Igreja">Igreja</option>
+                        <option value="Vizinhos">Vizinhos</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2">Pessoa
+                        Principal:</label>
+                    <input type="text" name="principal" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2">Número
+                        de Acompanhantes (Opcional):</label>
+                    <input type="number" name="companions"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Adicionar Convidado
+                    </button>
+                </div>
+            </form>
+
+            <!-- Lista de Convidados -->
+            <ul class="bg-white shadow-md rounded px-8 pt-6 pb-8">
+                <% guests.forEach(guest => { %>
+                <li
+                    class="mb-4 p-4 border-b border-gray-200 flex justify-between items-center">
+                    <div class="flex-1">
+                        <strong
+                            class="text-xl font-semibold text-gray-800"><%=
+                            guest.principal %></strong> -
+                        <span class="text-gray-600"><%= guest.category
+                            %></span> -
+                        <span class="text-gray-600"><%= guest.type
+                            %></span>
+                        <span class="text-gray-500">(<%=
+                            guest.companions %> acompanhantes)</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <!-- Ícone de Editar -->
+                        <button
+                            onclick="openEditModal('<%= guest.id %>', '<%= guest.category %>', '<%= guest.type %>', '<%= guest.principal %>', '<%= guest.companions %>')"
+                            class="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 focus:outline-none">
+                            <i class="fas fa-edit"></i>
+                            <!-- Ícone de editar -->
+                        </button>
+
+                        <!-- Formulário de Exclusão -->
+                        <form action="/delete/<%= guest.id %>"
+                            method="POST" class="inline">
+                            <button type="submit"
+                                class="bg-red-500 text-white p-2 rounded hover:bg-red-600 focus:outline-none">
+                                <i class="fas fa-trash-alt"></i>
+                                <!-- Ícone de excluir -->
+                            </button>
+                        </form>
+                    </div>
+                </li>
+                <% }) %>
+            </ul>
+
+        </div>
+
+        <!-- Modal para Editar Convidado -->
+        <div id="editModal"
+            class="modal fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+            <div
+                class="modal-content bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+                <!-- Botão de fechar -->
+                <button
+                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none text-3xl"
+                    onclick="closeModal()">
+                    &times;
+                </button>
+
+                <h2
+                    class="text-2xl font-bold mb-6 text-center text-gray-800">Editar
+                    Convidado</h2>
+
+                <form id="editForm" method="POST">
+                    <!-- Campo oculto para o ID -->
+                    <input type="hidden" name="id" id="editId">
+
+                    <!-- Seleção de Categoria -->
+                    <div class="mb-5">
+                        <label for="editCategory"
+                            class="block text-gray-700 text-sm font-medium mb-2">Categoria:</label>
+                        <select name="category" id="editCategory"
+                            required
+                            class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="Noivo">Noivo</option>
+                            <option value="Noiva">Noiva</option>
+                        </select>
+                    </div>
+
+                    <!-- Seleção de Tipo de Convidado -->
+                    <div class="mb-5">
+                        <label for="editType"
+                            class="block text-gray-700 text-sm font-medium mb-2">Tipo
+                            de Convidado:</label>
+                        <select name="type" id="editType" required
+                            class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="Família">Família</option>
+                            <option value="Serviço">Serviço</option>
+                            <option value="Igreja">Igreja</option>
+                            <option value="Vizinhos">Vizinhos</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo para Pessoa Principal -->
+                    <div class="mb-5">
+                        <label for="editPrincipal"
+                            class="block text-gray-700 text-sm font-medium mb-2">Pessoa
+                            Principal:</label>
+                        <input type="text" name="principal"
+                            id="editPrincipal" required
+                            class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Campo para Número de Acompanhantes -->
+                    <div class="mb-5">
+                        <label for="editCompanions"
+                            class="block text-gray-700 text-sm font-medium mb-2">Número
+                            de Acompanhantes (Opcional):</label>
+                        <input type="number" name="companions"
+                            id="editCompanions"
+                            class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Botão de Submissão -->
+                    <div class="flex items-center justify-center">
+                        <button type="submit"
+                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Função para abrir o modal de edição
+            function openEditModal(id, category, type, principal, companions) {
+              document.getElementById('editModal').style.display = 'flex';
+          
+              document.getElementById('editId').value = id;
+          
+              // Define o valor correto do select de categoria
+              const categorySelect = document.getElementById('editCategory');
+              Array.from(categorySelect.options).forEach(option => {
+                option.selected = option.value === category;
+              });
+          
+              // Define o valor correto do select de tipo
+              const typeSelect = document.getElementById('editType');
+              Array.from(typeSelect.options).forEach(option => {
+                option.selected = option.value === type;
+              });
+          
+              document.getElementById('editPrincipal').value = principal;
+              document.getElementById('editCompanions').value = companions || 0;
+          
+              document.getElementById('editForm').action = `/edit/${id}`;
+            }
+          
+            // Função para fechar o modal
+            function closeModal() {
+              document.getElementById('editModal').style.display = 'none';
+            }
+          </script>
+    </body>
+</html>
